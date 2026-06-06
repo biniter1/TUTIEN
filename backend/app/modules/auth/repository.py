@@ -13,6 +13,5 @@ def find_by_username(db: Session, username: str) -> User | None:
 
 def create_user(db: Session, user: User) -> User:
     db.add(user)
-    db.commit()
-    db.refresh(user)
+    db.flush()  # assigns id within the open transaction; caller commits
     return user

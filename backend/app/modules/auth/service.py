@@ -4,6 +4,7 @@ from sqlalchemy.orm import Session
 from app.core.security import create_access_token, hash_password, verify_password
 from app.modules.auth import repository as auth_repo
 from app.modules.auth.schemas import LoginRequest, RegisterRequest
+from app.modules.cultivation import service as cultivation_service
 from app.modules.users.models import User
 
 
@@ -24,7 +25,12 @@ def register(db: Session, request: RegisterRequest) -> User:
         password_hash=hash_password(request.password),
         dao_name=request.dao_name,
     )
-    return auth_repo.create_user(db, user)
+    auth_repo.create_user(db, user)  # flush only — user.id is now available
+    cultivation_service.create_default_profile(db, user.id)  # flush only
+
+    db.commit()      # single commit — both user and profile are persisted atomically
+    db.refresh(user)
+    return user
 
 
 def login(db: Session, request: LoginRequest) -> str:
