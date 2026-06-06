@@ -1,5 +1,6 @@
 from uuid import UUID
 
+from fastapi import HTTPException, status
 from sqlalchemy.orm import Session
 
 from app.modules.cultivation.models import CultivationProfile
@@ -21,3 +22,19 @@ def add_power(db: Session, user_id: UUID, amount: int) -> CultivationProfile | N
         return None
     profile.cultivation_power += amount
     return profile
+
+
+def spend_spirit_energy(db: Session, user_id: UUID, amount: int) -> int:
+    profile = find_by_user_id(db, user_id)
+    if profile is None:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Cultivation profile not found",
+        )
+    if profile.spirit_energy < amount:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Not enough spirit energy",
+        )
+    profile.spirit_energy -= amount  # mutation only after both checks pass
+    return profile.spirit_energy

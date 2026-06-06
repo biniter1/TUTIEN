@@ -27,3 +27,7 @@ def add_cultivation_power(db: Session, user_id: UUID, amount: int) -> int:
             detail="Cultivation profile not found",
         )
     return profile.cultivation_power
+
+
+def spend_spirit_energy(db: Session, user_id: UUID, amount: int) -> int:
+    return cultivation_repo.spend_spirit_energy(db, user_id, amount)

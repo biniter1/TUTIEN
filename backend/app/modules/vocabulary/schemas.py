@@ -48,6 +48,8 @@ class QuizSubmitResponse(BaseModel):
     expected_answer: str
     cultivation_power_gained: int
     new_cultivation_power: int
+    spirit_energy_spent: int
+    remaining_spirit_energy: int
     progress: WordProgressResponse
 
 
