@@ -13,6 +13,7 @@ from app.core.database import Base
 from app.modules.users.models import User  # noqa: F401 — registers User with Base.metadata
 from app.modules.cultivation.models import CultivationProfile  # noqa: F401 — registers CultivationProfile with Base.metadata
 from app.modules.vocabulary.models import VocabularySet, VocabularyWord, UserWordProgress  # noqa: F401 — registers vocabulary tables with Base.metadata
+from app.modules.quests.models import DailyMissionDefinition, UserDailyMissionProgress  # noqa: F401 — registers quest tables with Base.metadata
 
 config = context.config
 

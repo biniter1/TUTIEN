@@ -6,6 +6,7 @@ from app.core.config import settings
 from app.core.database import SessionLocal
 from app.modules.auth.router import router as auth_router
 from app.modules.cultivation.router import router as cultivation_router
+from app.modules.quests.router import router as quests_router
 from app.modules.users.router import router as users_router
 from app.modules.vocabulary.router import router as vocabulary_router
 
@@ -15,6 +16,7 @@ app.include_router(auth_router)
 app.include_router(users_router)
 app.include_router(cultivation_router)
 app.include_router(vocabulary_router)
+app.include_router(quests_router)
 
 
 @app.get("/health")
