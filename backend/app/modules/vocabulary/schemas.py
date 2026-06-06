@@ -1,3 +1,4 @@
+from typing import Literal
 from uuid import UUID
 
 from pydantic import BaseModel
@@ -28,3 +29,23 @@ class VocabularyWordResponse(BaseModel):
     difficulty: str
 
     model_config = {"from_attributes": True}
+
+
+class QuizSubmitRequest(BaseModel):
+    word_id: UUID
+    quiz_type: Literal["en_to_vi", "vi_to_en"]
+    answer: str
+
+
+class WordProgressResponse(BaseModel):
+    correct_count: int
+    wrong_count: int
+    mastery_level: int
+
+
+class QuizSubmitResponse(BaseModel):
+    correct: bool
+    expected_answer: str
+    cultivation_power_gained: int
+    new_cultivation_power: int
+    progress: WordProgressResponse
