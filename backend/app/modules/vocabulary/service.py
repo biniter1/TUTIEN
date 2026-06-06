@@ -10,6 +10,9 @@ from app.modules.vocabulary.models import UserWordProgress, VocabularySet, Vocab
 from app.modules.vocabulary.schemas import (
     QuizSubmitRequest,
     QuizSubmitResponse,
+    SetProgressResponse,
+    VocabularyProgressSummary,
+    WordProgressDetail,
     WordProgressResponse,
 )
 
@@ -34,6 +37,66 @@ def get_set(db: Session, set_id: UUID) -> VocabularySet:
 def get_words(db: Session, set_id: UUID) -> list[VocabularyWord]:
     get_set(db, set_id)  # validates set exists, raises 404 if not
     return vocab_repo.list_words_by_set_id(db, set_id)
+
+
+def get_progress_summary(db: Session, user_id: UUID) -> VocabularyProgressSummary:
+    records = vocab_repo.get_user_progress_all(db, user_id)
+    if not records:
+        return VocabularyProgressSummary(
+            total_words_attempted=0,
+            total_correct=0,
+            total_wrong=0,
+            mastered_words=0,
+            average_mastery_level=0.0,
+        )
+    total_correct = sum(r.correct_count for r in records)
+    total_wrong = sum(r.wrong_count for r in records)
+    mastered_words = sum(1 for r in records if r.mastery_level >= 5)
+    average_mastery = round(sum(r.mastery_level for r in records) / len(records), 2)
+    return VocabularyProgressSummary(
+        total_words_attempted=len(records),
+        total_correct=total_correct,
+        total_wrong=total_wrong,
+        mastered_words=mastered_words,
+        average_mastery_level=average_mastery,
+    )
+
+
+def get_set_progress(db: Session, user_id: UUID, set_id: UUID) -> SetProgressResponse:
+    get_set(db, set_id)  # raises 404 if set not found
+    words = vocab_repo.list_words_by_set_id(db, set_id)
+
+    total_words = len(words)
+    word_ids = [w.id for w in words]
+    word_lookup = {w.id: w for w in words}
+
+    progress_records = vocab_repo.get_user_progress_for_set(db, user_id, word_ids)
+
+    attempted_words = len(progress_records)
+    mastered_words = sum(1 for p in progress_records if p.mastery_level >= 5)
+    completion_percent = round(attempted_words / total_words * 100, 1) if total_words > 0 else 0.0
+
+    word_details = [
+        WordProgressDetail(
+            word_id=p.word_id,
+            english=word_lookup[p.word_id].english,
+            vietnamese=word_lookup[p.word_id].vietnamese,
+            correct_count=p.correct_count,
+            wrong_count=p.wrong_count,
+            mastery_level=p.mastery_level,
+        )
+        for p in progress_records
+        if p.word_id in word_lookup
+    ]
+
+    return SetProgressResponse(
+        set_id=set_id,
+        total_words=total_words,
+        attempted_words=attempted_words,
+        mastered_words=mastered_words,
+        completion_percent=completion_percent,
+        words=word_details,
+    )
 
 
 def submit_quiz(db: Session, user_id: UUID, request: QuizSubmitRequest) -> QuizSubmitResponse:

@@ -33,3 +33,22 @@ def create_progress(db: Session, progress: UserWordProgress) -> UserWordProgress
     db.add(progress)
     db.flush()
     return progress
+
+
+def get_user_progress_all(db: Session, user_id: UUID) -> list[UserWordProgress]:
+    return db.query(UserWordProgress).filter(UserWordProgress.user_id == user_id).all()
+
+
+def get_user_progress_for_set(
+    db: Session, user_id: UUID, word_ids: list[UUID]
+) -> list[UserWordProgress]:
+    if not word_ids:
+        return []
+    return (
+        db.query(UserWordProgress)
+        .filter(
+            UserWordProgress.user_id == user_id,
+            UserWordProgress.word_id.in_(word_ids),
+        )
+        .all()
+    )

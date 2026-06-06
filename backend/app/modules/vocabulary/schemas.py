@@ -49,3 +49,29 @@ class QuizSubmitResponse(BaseModel):
     cultivation_power_gained: int
     new_cultivation_power: int
     progress: WordProgressResponse
+
+
+class VocabularyProgressSummary(BaseModel):
+    total_words_attempted: int
+    total_correct: int
+    total_wrong: int
+    mastered_words: int
+    average_mastery_level: float
+
+
+class WordProgressDetail(BaseModel):
+    word_id: UUID
+    english: str
+    vietnamese: str
+    correct_count: int
+    wrong_count: int
+    mastery_level: int
+
+
+class SetProgressResponse(BaseModel):
+    set_id: UUID
+    total_words: int
+    attempted_words: int
+    mastered_words: int
+    completion_percent: float
+    words: list[WordProgressDetail]
