@@ -96,3 +96,18 @@ Module boundaries:
 
 vocabulary.service should not directly query quest tables.
 It should call quests.service.
+### Task 3C: Daily Mission Progress from Vocabulary Quiz
+- Vocabulary quiz submission updates today's daily missions
+- answer_questions +1 for every valid quiz submission
+- correct_answers +1 if answer is correct
+- gain_cultivation_power + gained amount
+- spend_spirit_energy + spent amount
+- Mission progress caps at target_value
+- is_completed becomes true when progress reaches target
+
+### Task 3D: Daily Mission Reward Claim
+- POST /quests/daily/{mission_code}/claim
+- Can claim only completed and unclaimed missions
+- Claim reward adds cultivation_power and reputation
+- Marks mission as claimed
+- Prevents duplicate claim

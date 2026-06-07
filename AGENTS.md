@@ -189,3 +189,27 @@ Before modifying code:
    - endpoints added
    - database changes
    - how to test
+## Extensibility Rules
+
+The project must be content-driven and easy to extend.
+
+Avoid hardcoding game content directly in business logic.
+
+Prefer stable `code` fields for game definitions:
+- vocabulary_sets.code
+- achievement_definitions.code
+- title_definitions.code
+- daily_mission_definitions.code
+- future realm_definitions.code
+
+Seed scripts must be idempotent:
+- running the same seed multiple times must not create duplicates
+- existing records should be reused or updated safely
+
+Adding new content should usually require adding seed data or future admin/import data, not rewriting core logic.
+
+Examples:
+- Adding a new title should not require changing reward logic.
+- Adding a new achievement should not require changing API structure.
+- Adding a new vocabulary set should not require new code.
+- Adding a new realm should later be possible through realm definitions, not hardcoded strings.
