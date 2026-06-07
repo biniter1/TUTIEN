@@ -3,9 +3,12 @@ from uuid import UUID
 
 from sqlalchemy.orm import Session
 
+from fastapi import HTTPException, status
+
+from app.modules.cultivation import service as cultivation_service
 from app.modules.quests import repository as quest_repo
 from app.modules.quests.models import UserDailyMissionProgress
-from app.modules.quests.schemas import DailyMissionResponse, DailyMissionsResponse, MissionProgressUpdate
+from app.modules.quests.schemas import ClaimMissionResponse, DailyMissionResponse, DailyMissionsResponse, MissionProgressUpdate
 
 
 def get_daily_missions(db: Session, user_id: UUID) -> DailyMissionsResponse:
@@ -104,3 +107,59 @@ def update_daily_progress_for_quiz(
         )
 
     return updated
+
+
+def claim_daily_mission(
+    db: Session, user_id: UUID, mission_code: str
+) -> ClaimMissionResponse:
+    mission = quest_repo.find_mission_by_code(db, mission_code)
+    if mission is None:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Daily mission not found",
+        )
+
+    # Use server local date for MVP.
+    # TODO: Replace with configured timezone (e.g. Asia/Ho_Chi_Minh) when timezone support is added.
+    today = date.today()
+    progress = quest_repo.find_progress(db, user_id, mission.id, today)
+    if progress is None:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Daily mission progress not found",
+        )
+    if not progress.is_completed:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Daily mission not completed",
+        )
+    if progress.is_claimed:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Daily mission already claimed",
+        )
+
+    # Capture reward amounts as plain values before any mutation
+    code = mission.code
+    reward_cp = mission.reward_cultivation_power
+    reward_rep = mission.reward_reputation
+
+    try:
+        new_cultivation_power = cultivation_service.add_cultivation_power(
+            db, user_id, reward_cp
+        )
+        new_reputation = cultivation_service.add_reputation(db, user_id, reward_rep)
+        quest_repo.mark_claimed(db, progress)
+        db.commit()
+    except Exception:
+        db.rollback()
+        raise
+
+    return ClaimMissionResponse(
+        code=code,
+        claimed=True,
+        reward_cultivation_power=reward_cp,
+        reward_reputation=reward_rep,
+        new_cultivation_power=new_cultivation_power,
+        new_reputation=new_reputation,
+    )

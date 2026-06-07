@@ -24,3 +24,12 @@ class DailyMissionResponse(BaseModel):
 class DailyMissionsResponse(BaseModel):
     date: str
     missions: list[DailyMissionResponse]
+
+
+class ClaimMissionResponse(BaseModel):
+    code: str
+    claimed: bool
+    reward_cultivation_power: int
+    reward_reputation: int
+    new_cultivation_power: int
+    new_reputation: int

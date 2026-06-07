@@ -38,3 +38,11 @@ def spend_spirit_energy(db: Session, user_id: UUID, amount: int) -> int:
         )
     profile.spirit_energy -= amount  # mutation only after both checks pass
     return profile.spirit_energy
+
+
+def add_reputation(db: Session, user_id: UUID, amount: int) -> CultivationProfile | None:
+    profile = find_by_user_id(db, user_id)
+    if profile is None:
+        return None
+    profile.reputation += amount
+    return profile

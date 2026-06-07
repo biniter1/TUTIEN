@@ -31,3 +31,13 @@ def add_cultivation_power(db: Session, user_id: UUID, amount: int) -> int:
 
 def spend_spirit_energy(db: Session, user_id: UUID, amount: int) -> int:
     return cultivation_repo.spend_spirit_energy(db, user_id, amount)
+
+
+def add_reputation(db: Session, user_id: UUID, amount: int) -> int:
+    profile = cultivation_repo.add_reputation(db, user_id, amount)
+    if profile is None:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Cultivation profile not found",
+        )
+    return profile.reputation

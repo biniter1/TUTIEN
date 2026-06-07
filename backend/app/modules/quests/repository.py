@@ -49,3 +49,18 @@ def increment_progress(
     if progress.progress_value >= target_value:
         progress.is_completed = True
     return progress
+
+
+def find_mission_by_code(db: Session, code: str) -> DailyMissionDefinition | None:
+    return (
+        db.query(DailyMissionDefinition)
+        .filter(DailyMissionDefinition.code == code)
+        .first()
+    )
+
+
+def mark_claimed(
+    db: Session, progress: UserDailyMissionProgress
+) -> UserDailyMissionProgress:
+    progress.is_claimed = True
+    return progress
