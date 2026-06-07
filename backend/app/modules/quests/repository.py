@@ -37,3 +37,15 @@ def create_progress(
     db.add(progress)
     db.flush()
     return progress
+
+
+def increment_progress(
+    db: Session,
+    progress: UserDailyMissionProgress,
+    amount: int,
+    target_value: int,
+) -> UserDailyMissionProgress:
+    progress.progress_value = min(target_value, progress.progress_value + amount)
+    if progress.progress_value >= target_value:
+        progress.is_completed = True
+    return progress

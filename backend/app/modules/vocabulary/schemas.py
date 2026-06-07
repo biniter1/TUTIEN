@@ -43,6 +43,13 @@ class WordProgressResponse(BaseModel):
     mastery_level: int
 
 
+class QuizMissionProgressUpdate(BaseModel):
+    code: str
+    progress_value: int
+    target_value: int
+    is_completed: bool
+
+
 class QuizSubmitResponse(BaseModel):
     correct: bool
     expected_answer: str
@@ -51,6 +58,7 @@ class QuizSubmitResponse(BaseModel):
     spirit_energy_spent: int
     remaining_spirit_energy: int
     progress: WordProgressResponse
+    daily_missions_updated: list[QuizMissionProgressUpdate]
 
 
 class VocabularyProgressSummary(BaseModel):

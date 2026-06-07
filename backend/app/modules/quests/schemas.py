@@ -1,6 +1,13 @@
 from pydantic import BaseModel
 
 
+class MissionProgressUpdate(BaseModel):
+    code: str
+    progress_value: int
+    target_value: int
+    is_completed: bool
+
+
 class DailyMissionResponse(BaseModel):
     code: str
     name: str

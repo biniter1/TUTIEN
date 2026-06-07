@@ -5,9 +5,11 @@ from fastapi import HTTPException, status
 from sqlalchemy.orm import Session
 
 from app.modules.cultivation import service as cultivation_service
+from app.modules.quests import service as quest_service
 from app.modules.vocabulary import repository as vocab_repo
 from app.modules.vocabulary.models import UserWordProgress, VocabularySet, VocabularyWord
 from app.modules.vocabulary.schemas import (
+    QuizMissionProgressUpdate,
     QuizSubmitRequest,
     QuizSubmitResponse,
     SetProgressResponse,
@@ -156,12 +158,32 @@ def submit_quiz(db: Session, user_id: UUID, request: QuizSubmitRequest) -> QuizS
             profile = cultivation_service.get_profile_by_user_id(db, user_id)
             new_power = profile.cultivation_power if profile else 0
 
-        # 3e. Capture all result values before commit (attributes expire after commit)
+        # 3e. Update daily mission progress — no commit; stays in this transaction
+        mission_updates = quest_service.update_daily_progress_for_quiz(
+            db,
+            user_id=user_id,
+            answered_count=1,
+            correct_count=1 if is_correct else 0,
+            cultivation_power_gained=power_gained,
+            spirit_energy_spent=SPIRIT_ENERGY_PER_QUIZ,
+        )
+        # Convert to vocabulary response schema (Pydantic objects — safe after commit)
+        daily_missions_updated = [
+            QuizMissionProgressUpdate(
+                code=m.code,
+                progress_value=m.progress_value,
+                target_value=m.target_value,
+                is_completed=m.is_completed,
+            )
+            for m in mission_updates
+        ]
+
+        # 3f. Capture ORM attribute values before commit (attributes expire after commit)
         result_correct_count = progress.correct_count
         result_wrong_count = progress.wrong_count
         result_mastery = progress.mastery_level
 
-        # 3f. Single commit — progress + spirit_energy + cultivation_power atomic
+        # 3g. Single commit — word progress + spirit_energy + cultivation_power + quest progress atomic
         db.commit()
 
     except Exception:
@@ -180,4 +202,5 @@ def submit_quiz(db: Session, user_id: UUID, request: QuizSubmitRequest) -> QuizS
             wrong_count=result_wrong_count,
             mastery_level=result_mastery,
         ),
+        daily_missions_updated=daily_missions_updated,
     )
