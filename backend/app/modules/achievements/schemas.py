@@ -48,3 +48,10 @@ class TitleResponse(BaseModel):
 
 class TitlesResponse(BaseModel):
     titles: list[TitleResponse]
+
+
+class EquipTitleResponse(BaseModel):
+    code: str
+    name: str
+    rarity: str
+    is_equipped: bool

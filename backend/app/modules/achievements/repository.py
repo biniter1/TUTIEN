@@ -98,3 +98,11 @@ def create_user_title(db: Session, user_title: UserTitle) -> UserTitle:
     db.add(user_title)
     db.flush()
     return user_title
+
+
+def list_user_titles_by_user_id(db: Session, user_id: UUID) -> list[UserTitle]:
+    return (
+        db.query(UserTitle)
+        .filter(UserTitle.user_id == user_id)
+        .all()
+    )

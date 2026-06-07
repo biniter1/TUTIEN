@@ -5,10 +5,13 @@ from sqlalchemy.orm import Session
 
 from app.modules.achievements import repository as achievement_repo
 from app.modules.achievements.models import UserAchievement, UserTitle
+from fastapi import HTTPException, status
+
 from app.modules.achievements.schemas import (
     AchievementResponse,
     AchievementUnlockResult,
     AchievementsResponse,
+    EquipTitleResponse,
     TitleResponse,
     TitlesResponse,
     UnlockedAchievementInfo,
@@ -159,3 +162,40 @@ def handle_vocabulary_quiz_event(
 
 def handle_daily_claim_event(db: Session, user_id: UUID) -> AchievementUnlockResult:
     return unlock_achievement_by_code(db, user_id, "FIRST_DAILY_CLAIM")
+
+
+def equip_title(db: Session, user_id: UUID, title_code: str) -> EquipTitleResponse:
+    title_def = achievement_repo.find_title_definition_by_code(db, title_code)
+    if title_def is None or not title_def.is_active:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Title not found",
+        )
+
+    user_title = achievement_repo.find_user_title(db, user_id, title_def.id)
+    if user_title is None:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Title not unlocked",
+        )
+
+    # Capture plain values before mutation (ORM attributes expire after commit)
+    code = title_def.code
+    name = title_def.name
+    rarity = title_def.rarity
+
+    try:
+        # Load all UserTitle rows into session so SQLAlchemy tracks every dirty object.
+        # Set all to False in memory first, then set the target to True.
+        # SQLAlchemy's identity map ensures user_title is the same object as
+        # its counterpart in all_user_titles, so the True assignment wins.
+        all_user_titles = achievement_repo.list_user_titles_by_user_id(db, user_id)
+        for ut in all_user_titles:
+            ut.is_equipped = False
+        user_title.is_equipped = True
+        db.commit()
+    except Exception:
+        db.rollback()
+        raise
+
+    return EquipTitleResponse(code=code, name=name, rarity=rarity, is_equipped=True)
