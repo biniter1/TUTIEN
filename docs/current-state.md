@@ -128,3 +128,8 @@ It should call quests.service.
 - Unlocking achievements can grant reward titles
 - Unlock logic is idempotent
 - API responses return unlocked_achievements and unlocked_titles for frontend animation
+### Task 4C: Equip Unlocked Title
+- POST /titles/{title_code}/equip
+- User can equip only unlocked titles
+- Equipping one title unequips other titles
+- GET /titles/me shows correct is_equipped state
