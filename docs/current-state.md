@@ -111,3 +111,20 @@ It should call quests.service.
 - Claim reward adds cultivation_power and reputation
 - Marks mission as claimed
 - Prevents duplicate claim
+### Task 4A: Achievement and Title Foundation
+- achievement_definitions table
+- user_achievements table
+- title_definitions table
+- user_titles table
+- GET /achievements/me
+- GET /titles/me
+- Seed script for initial achievements and titles
+- Content is data-driven through stable code fields
+
+### Task 4B: Auto Unlock Achievements and Grant Titles
+- Vocabulary quiz can unlock FIRST_CORRECT_ANSWER
+- Vocabulary mastery can unlock MASTER_ONE_WORD
+- Daily mission claim can unlock FIRST_DAILY_CLAIM
+- Unlocking achievements can grant reward titles
+- Unlock logic is idempotent
+- API responses return unlocked_achievements and unlocked_titles for frontend animation
