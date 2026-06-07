@@ -4,6 +4,7 @@ from uuid import UUID
 from fastapi import HTTPException, status
 from sqlalchemy.orm import Session
 
+from app.modules.achievements import service as achievement_service
 from app.modules.cultivation import service as cultivation_service
 from app.modules.quests import service as quest_service
 from app.modules.vocabulary import repository as vocab_repo
@@ -178,12 +179,21 @@ def submit_quiz(db: Session, user_id: UUID, request: QuizSubmitRequest) -> QuizS
             for m in mission_updates
         ]
 
-        # 3f. Capture ORM attribute values before commit (attributes expire after commit)
+        # 3f. Check achievement unlocks — flushes new rows; no commit; stays in this transaction
+        #     Pass in-memory mastery_level (already updated at 3c) so MASTER_ONE_WORD fires correctly
+        achievement_result = achievement_service.handle_vocabulary_quiz_event(
+            db,
+            user_id=user_id,
+            is_correct=is_correct,
+            mastery_level=progress.mastery_level,
+        )
+
+        # 3g. Capture ORM attribute values before commit (attributes expire after commit)
         result_correct_count = progress.correct_count
         result_wrong_count = progress.wrong_count
         result_mastery = progress.mastery_level
 
-        # 3g. Single commit — word progress + spirit_energy + cultivation_power + quest progress atomic
+        # 3h. Single commit — all mutations atomic
         db.commit()
 
     except Exception:
@@ -203,4 +213,6 @@ def submit_quiz(db: Session, user_id: UUID, request: QuizSubmitRequest) -> QuizS
             mastery_level=result_mastery,
         ),
         daily_missions_updated=daily_missions_updated,
+        unlocked_achievements=achievement_result.unlocked_achievements,
+        unlocked_titles=achievement_result.unlocked_titles,
     )

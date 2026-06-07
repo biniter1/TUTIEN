@@ -3,6 +3,8 @@ from uuid import UUID
 
 from pydantic import BaseModel
 
+from app.modules.achievements.schemas import UnlockedAchievementInfo, UnlockedTitleInfo
+
 
 class VocabularySetResponse(BaseModel):
     id: UUID
@@ -59,6 +61,8 @@ class QuizSubmitResponse(BaseModel):
     remaining_spirit_energy: int
     progress: WordProgressResponse
     daily_missions_updated: list[QuizMissionProgressUpdate]
+    unlocked_achievements: list[UnlockedAchievementInfo]
+    unlocked_titles: list[UnlockedTitleInfo]
 
 
 class VocabularyProgressSummary(BaseModel):

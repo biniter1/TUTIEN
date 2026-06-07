@@ -1,6 +1,24 @@
 from datetime import datetime
 
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
+
+
+class UnlockedAchievementInfo(BaseModel):
+    code: str
+    name: str
+    description: str | None
+    reward_title_code: str | None
+
+
+class UnlockedTitleInfo(BaseModel):
+    code: str
+    name: str
+    rarity: str
+
+
+class AchievementUnlockResult(BaseModel):
+    unlocked_achievements: list[UnlockedAchievementInfo] = Field(default_factory=list)
+    unlocked_titles: list[UnlockedTitleInfo] = Field(default_factory=list)
 
 
 class AchievementResponse(BaseModel):

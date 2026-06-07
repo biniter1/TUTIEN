@@ -1,5 +1,7 @@
 from pydantic import BaseModel
 
+from app.modules.achievements.schemas import UnlockedAchievementInfo, UnlockedTitleInfo
+
 
 class MissionProgressUpdate(BaseModel):
     code: str
@@ -33,3 +35,5 @@ class ClaimMissionResponse(BaseModel):
     reward_reputation: int
     new_cultivation_power: int
     new_reputation: int
+    unlocked_achievements: list[UnlockedAchievementInfo]
+    unlocked_titles: list[UnlockedTitleInfo]

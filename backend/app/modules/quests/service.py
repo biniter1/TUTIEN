@@ -5,6 +5,7 @@ from sqlalchemy.orm import Session
 
 from fastapi import HTTPException, status
 
+from app.modules.achievements import service as achievement_service
 from app.modules.cultivation import service as cultivation_service
 from app.modules.quests import repository as quest_repo
 from app.modules.quests.models import UserDailyMissionProgress
@@ -150,6 +151,7 @@ def claim_daily_mission(
         )
         new_reputation = cultivation_service.add_reputation(db, user_id, reward_rep)
         quest_repo.mark_claimed(db, progress)
+        achievement_result = achievement_service.handle_daily_claim_event(db, user_id)
         db.commit()
     except Exception:
         db.rollback()
@@ -162,4 +164,6 @@ def claim_daily_mission(
         reward_reputation=reward_rep,
         new_cultivation_power=new_cultivation_power,
         new_reputation=new_reputation,
+        unlocked_achievements=achievement_result.unlocked_achievements,
+        unlocked_titles=achievement_result.unlocked_titles,
     )
